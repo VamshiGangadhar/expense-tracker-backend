@@ -7,6 +7,7 @@ const userRoutes = require("./routes/userRoutes");
 const testRoutes = require("./routes/testRoutes");
 const expenseRoutes = require("./routes/addExpenseRoutes");
 const roomExpenseRoutes = require('./routes/roomExpenseRoutes');
+const repaymentRoutes = require('./routes/repaymentRoutes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use('/api/roomExpenses', roomExpenseRoutes);
+app.use('/api/repayments', repaymentRoutes);
 
 app.listen(3004, () => {
   console.log("Server running on port 3004");

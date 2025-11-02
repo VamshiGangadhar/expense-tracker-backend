@@ -2,7 +2,7 @@ const Expense = require("../models/Expenses");
 
 module.exports.addExpense = async function (req, res) {
   try {
-    const { description, amount, category, date } = req.body;
+    const { description, amount, category, date, paymentMethod } = req.body;
 
     // Create a new expense
     const newExpense = new Expense({
@@ -10,6 +10,7 @@ module.exports.addExpense = async function (req, res) {
       amount,
       category,
       date,
+      paymentMethod: paymentMethod || 'self',
     });
 
     // Save the expense to the database
