@@ -6,8 +6,8 @@ require("dotenv").config();
 const userRoutes = require("./routes/userRoutes");
 const testRoutes = require("./routes/testRoutes");
 const expenseRoutes = require("./routes/addExpenseRoutes");
-const roomExpenseRoutes = require('./routes/roomExpenseRoutes');
-const repaymentRoutes = require('./routes/repaymentRoutes');
+const roomExpenseRoutes = require("./routes/roomExpenseRoutes");
+const repaymentRoutes = require("./routes/repaymentRoutes");
 
 const app = express();
 
@@ -15,21 +15,19 @@ app.use(cors());
 app.use(bodyParser.json());
 
 mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/api/users", userRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/expenses", expenseRoutes);
-app.use('/api/roomExpenses', roomExpenseRoutes);
-app.use('/api/repayments', repaymentRoutes);
+app.use("/api/roomExpenses", roomExpenseRoutes);
+app.use("/api/repayments", repaymentRoutes);
 
-app.listen(3004, () => {
-  console.log("Server running on port 3004");
+const PORT = process.env.PORT || 3004;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;

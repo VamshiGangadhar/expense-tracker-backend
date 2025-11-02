@@ -10,28 +10,35 @@ module.exports.markAsRepaid = async function (req, res) {
     console.log("Received repayment request for expenseId:", expenseId);
     console.log("Request body:", req.body);
 
-    // Find the expense
-    const expense = await Expense.findById(expenseId);
+    // Find the expense for the authenticated user
+    const expense = await Expense.findOne({
+      _id: expenseId,
+      userId: req.userId,
+    });
     console.log("Found expense:", expense);
-    
-    if (!expense) {
-      console.log("Expense not found with ID:", expenseId);
-      return res.status(404).json({ error: "Expense not found" });
-    }
 
-    // Check if it's lent or credit-card
+    if (!expense) {
+      console.log(
+        "Expense not found with ID:",
+        expenseId,
+        "for user:",
+        req.userId
+      );
+      return res.status(404).json({ error: "Expense not found" });
+    } // Check if it's lent or credit-card
     console.log("Expense paymentMethod:", expense.paymentMethod);
-    
+
     if (
       expense.paymentMethod !== "lent" &&
       expense.paymentMethod !== "credit-card"
     ) {
-      console.log("Invalid payment method for repayment:", expense.paymentMethod);
-      return res
-        .status(400)
-        .json({
-          error: "Only lent and credit card expenses can be marked as repaid",
-        });
+      console.log(
+        "Invalid payment method for repayment:",
+        expense.paymentMethod
+      );
+      return res.status(400).json({
+        error: "Only lent and credit card expenses can be marked as repaid",
+      });
     }
 
     // Update expense repayment status
@@ -45,6 +52,7 @@ module.exports.markAsRepaid = async function (req, res) {
       : new Date();
     const repaymentRecord = new Repayment({
       expenseId: expense._id,
+      userId: req.userId, // Add user ID to repayment record
       repaymentType: expense.paymentMethod,
       originalAmount: expense.amount,
       repaidAmount: repaidAmount || expense.amount,
