@@ -7,15 +7,31 @@ module.exports.markAsRepaid = async function (req, res) {
     const { expenseId } = req.params;
     const { repaidAmount, repaymentDate } = req.body;
 
+    console.log("Received repayment request for expenseId:", expenseId);
+    console.log("Request body:", req.body);
+
     // Find the expense
     const expense = await Expense.findById(expenseId);
+    console.log("Found expense:", expense);
+    
     if (!expense) {
+      console.log("Expense not found with ID:", expenseId);
       return res.status(404).json({ error: "Expense not found" });
     }
 
     // Check if it's lent or credit-card
-    if (expense.paymentMethod !== 'lent' && expense.paymentMethod !== 'credit-card') {
-      return res.status(400).json({ error: "Only lent and credit card expenses can be marked as repaid" });
+    console.log("Expense paymentMethod:", expense.paymentMethod);
+    
+    if (
+      expense.paymentMethod !== "lent" &&
+      expense.paymentMethod !== "credit-card"
+    ) {
+      console.log("Invalid payment method for repayment:", expense.paymentMethod);
+      return res
+        .status(400)
+        .json({
+          error: "Only lent and credit card expenses can be marked as repaid",
+        });
     }
 
     // Update expense repayment status
@@ -24,7 +40,9 @@ module.exports.markAsRepaid = async function (req, res) {
     await expense.save();
 
     // Create repayment record
-    const repaymentRecordDate = repaymentDate ? new Date(repaymentDate) : new Date();
+    const repaymentRecordDate = repaymentDate
+      ? new Date(repaymentDate)
+      : new Date();
     const repaymentRecord = new Repayment({
       expenseId: expense._id,
       repaymentType: expense.paymentMethod,
@@ -34,7 +52,7 @@ module.exports.markAsRepaid = async function (req, res) {
       description: expense.description,
       month: repaymentRecordDate.getMonth(),
       year: repaymentRecordDate.getFullYear(),
-      isFullyRepaid: (repaidAmount || expense.amount) >= expense.amount
+      isFullyRepaid: (repaidAmount || expense.amount) >= expense.amount,
     });
 
     await repaymentRecord.save();
@@ -42,7 +60,7 @@ module.exports.markAsRepaid = async function (req, res) {
     res.status(200).json({
       message: "Expense marked as repaid",
       expense,
-      repayment: repaymentRecord
+      repayment: repaymentRecord,
     });
   } catch (error) {
     console.error("Error marking expense as repaid:", error);
@@ -54,7 +72,7 @@ module.exports.markAsRepaid = async function (req, res) {
 module.exports.getRepayments = async function (req, res) {
   try {
     const { month, year } = req.query;
-    
+
     let filter = {};
     if (month !== undefined && year !== undefined) {
       filter.month = parseInt(month);
@@ -62,9 +80,9 @@ module.exports.getRepayments = async function (req, res) {
     }
 
     const repayments = await Repayment.find(filter)
-      .populate('expenseId')
+      .populate("expenseId")
       .sort({ repaymentDate: -1 });
-    
+
     res.json(repayments);
   } catch (error) {
     console.error("Error fetching repayments:", error);
@@ -77,12 +95,14 @@ module.exports.getRepaymentSummary = async function (req, res) {
   try {
     const { month, year } = req.query;
     const currentDate = new Date();
-    const targetMonth = month !== undefined ? parseInt(month) : currentDate.getMonth();
-    const targetYear = year !== undefined ? parseInt(year) : currentDate.getFullYear();
+    const targetMonth =
+      month !== undefined ? parseInt(month) : currentDate.getMonth();
+    const targetYear =
+      year !== undefined ? parseInt(year) : currentDate.getFullYear();
 
     const repayments = await Repayment.find({
       month: targetMonth,
-      year: targetYear
+      year: targetYear,
     });
 
     const summary = {
@@ -92,14 +112,14 @@ module.exports.getRepaymentSummary = async function (req, res) {
       totalCreditCardRepaid: 0,
       lentCount: 0,
       creditCardCount: 0,
-      repayments: repayments
+      repayments: repayments,
     };
 
-    repayments.forEach(repayment => {
-      if (repayment.repaymentType === 'lent') {
+    repayments.forEach((repayment) => {
+      if (repayment.repaymentType === "lent") {
         summary.totalLentRepaid += repayment.repaidAmount;
         summary.lentCount++;
-      } else if (repayment.repaymentType === 'credit-card') {
+      } else if (repayment.repaymentType === "credit-card") {
         summary.totalCreditCardRepaid += repayment.repaidAmount;
         summary.creditCardCount++;
       }
@@ -133,7 +153,7 @@ module.exports.markAsNotRepaid = async function (req, res) {
 
     res.status(200).json({
       message: "Expense marked as not repaid",
-      expense
+      expense,
     });
   } catch (error) {
     console.error("Error marking expense as not repaid:", error);
